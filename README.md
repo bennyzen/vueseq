@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./vueseq.svg" alt="VueSeq Logo" width="200">
+  <img src="./vueseq.svg" alt="VueSeq Logo" >
 </p>
 
 # VueSeq
