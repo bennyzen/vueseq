@@ -18,9 +18,11 @@ Render Vue components with GSAP animations to video. Write standard Vue + GSAP c
 
 ## Demo
 
-https://github.com/user-attachments/assets/placeholder
 
-> **Note:** After pushing to GitHub, the video above will display. For local preview, see [examples/showcase.mp4](./examples/showcase.mp4).
+
+https://github.com/user-attachments/assets/84d01c02-4b4f-4d86-879e-720a7e367967
+
+
 
 *This video was rendered with VueSeq from [examples/HelloWorld.vue](./examples/HelloWorld.vue)*
 
