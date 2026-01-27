@@ -16,6 +16,14 @@ Render Vue components with GSAP animations to video. Write standard Vue + GSAP c
 - ✅ **Programmatic API** - Integrate into your build pipeline
 - ✅ **Full GSAP Power** - All easing, timelines, and plugins work
 
+## Demo
+
+https://github.com/user-attachments/assets/placeholder
+
+> **Note:** After pushing to GitHub, the video above will display. For local preview, see [examples/showcase.mp4](./examples/showcase.mp4).
+
+*This video was rendered with VueSeq from [examples/HelloWorld.vue](./examples/HelloWorld.vue)*
+
 ## Philosophy
 
 VueSeq is intentionally minimal. We bundle only the essentials: **Vue**, **GSAP**, **Playwright**, and **Vite**.
