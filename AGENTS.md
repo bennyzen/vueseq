@@ -8,10 +8,10 @@
 
 ```bash
 # Render a Vue component to video
-npx vueseq Video.vue -d <duration_seconds> -o output.mp4
+npx vueseq examples/HelloWorld.vue -o examples/hello.mp4
 
 # Options
--d, --duration   Duration in seconds (required)
+-d, --duration   Duration in seconds (auto-detected from timeline if not specified)
 -o, --output     Output file (default: ./output.mp4)
 -f, --fps        Frames per second (default: 30)
 -w, --width      Width in pixels (default: 1920)
@@ -213,7 +213,7 @@ h1 {
 </style>
 ```
 
-**Render:** `npx vueseq TextReveal.vue -d 3 -o text-reveal.mp4`
+**Render:** `npx vueseq TextReveal.vue -o text-reveal.mp4`
 
 ---
 
@@ -287,7 +287,7 @@ onMounted(() => {
 </style>
 ```
 
-**Render:** `npx vueseq LogoAnimation.vue -d 4 -o logo.mp4`
+**Render:** `npx vueseq LogoAnimation.vue -o logo.mp4`
 
 ---
 
@@ -390,7 +390,7 @@ onMounted(() => {
 </style>
 ```
 
-**Render:** `npx vueseq BarChart.vue -d 4 -o chart.mp4`
+**Render:** `npx vueseq BarChart.vue -o chart.mp4`
 
 ---
 
@@ -457,7 +457,7 @@ onMounted(() => {
 </style>
 ```
 
-**Render:** `npx vueseq MorphShape.vue -d 3 -o morph.mp4`
+**Render:** `npx vueseq MorphShape.vue -o morph.mp4`
 
 ---
 
@@ -704,8 +704,8 @@ gsap.from('.element', { opacity: 0, duration: 1, delay: 0.1 })
 When asked to create a video:
 
 1. **Create the Vue component** with GSAP animations in `onMounted()`
-2. **Test with short duration first**: `npx vueseq Video.vue -d 2 -w 640 -H 360 -o test.mp4`
-3. **Render final version**: `npx vueseq Video.vue -d 5 -o final.mp4`
+2. **Test with low resolution first**: `npx vueseq Video.vue -w 640 -H 360 -o test.mp4`
+3. **Render final version**: `npx vueseq Video.vue -o final.mp4`
 4. **Verify** the output exists and has correct duration
 
 ```bash

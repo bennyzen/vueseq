@@ -14,18 +14,55 @@ import { mkdir } from 'fs/promises'
 import { join } from 'path'
 
 /**
+ * Get the timeline duration from a Vue component
+ * @param {Object} options
+ * @param {string} options.input - Absolute path to the Video.vue component
+ * @param {number} [options.width=1920] - Video width in pixels
+ * @param {number} [options.height=1080] - Video height in pixels
+ * @returns {Promise<number|null>} Duration in seconds, or null if not detectable
+ */
+export async function getTimelineDuration(options) {
+    const { input, width = 1920, height = 1080 } = options
+
+    const { url, cleanup } = await createVideoServer({ input, width, height })
+
+    const browser = await chromium.launch({ headless: true })
+    const context = await browser.newContext({
+        viewport: { width, height },
+        deviceScaleFactor: 1
+    })
+    const page = await context.newPage()
+
+    try {
+        await page.goto(url, { waitUntil: 'networkidle' })
+        await page.waitForFunction(
+            () => window.__VUESEQ_READY__ === true,
+            { timeout: 30000 }
+        )
+        // Give Vue/GSAP a moment to set up timelines
+        await page.waitForTimeout(100)
+
+        const duration = await page.evaluate(() => window.__VUESEQ_GET_DURATION__?.())
+        return duration
+    } finally {
+        await browser.close()
+        await cleanup()
+    }
+}
+
+/**
  * Render frames from a Vue component
  * @param {Object} options
  * @param {string} options.input - Absolute path to the Video.vue component
  * @param {number} [options.fps=30] - Frames per second
- * @param {number} options.duration - Duration in seconds
+ * @param {number} [options.duration] - Duration in seconds (auto-detected if not provided)
  * @param {number} [options.width=1920] - Video width in pixels
  * @param {number} [options.height=1080] - Video height in pixels
  * @param {function} [options.onProgress] - Progress callback
  * @returns {Promise<{framesDir: string, totalFrames: number, cleanup: () => Promise<void>}>}
  */
 export async function renderFrames(options) {
-    const {
+    let {
         input,
         fps = 30,
         duration,
@@ -34,8 +71,12 @@ export async function renderFrames(options) {
         onProgress
     } = options
 
-    if (!duration || duration <= 0) {
-        throw new Error('Duration must be a positive number (in seconds)')
+    // Auto-detect duration if not provided
+    if (!duration) {
+        duration = await getTimelineDuration({ input, width, height })
+        if (!duration || duration <= 0) {
+            throw new Error('Could not auto-detect duration. Specify -d/--duration manually.')
+        }
     }
 
     const totalFrames = Math.ceil(duration * fps)

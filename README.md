@@ -159,10 +159,10 @@ span {
 ### 2. Render to Video
 
 ```bash
-npx vueseq MyVideo.vue -d 4 -o hello.mp4
+npx vueseq examples/HelloWorld.vue -o examples/hello.mp4
 ```
 
-That's it! Your video will be rendered at 1920x1080, 30fps.
+That's it! Duration is auto-detected from your timeline. Your video will be rendered at 1920x1080, 30fps.
 
 ## CLI Options
 
@@ -171,7 +171,7 @@ vueseq <Video.vue> [options]
 
 Options:
   -o, --output   Output file (default: ./output.mp4)
-  -d, --duration Duration in seconds (required)
+  -d, --duration Duration in seconds (auto-detected from timeline if not specified)
   -f, --fps      Frames per second (default: 30)
   -w, --width    Video width in pixels (default: 1920)
   -H, --height   Video height in pixels (default: 1080)
@@ -181,14 +181,20 @@ Options:
 ### Examples
 
 ```bash
-# Basic render
-vueseq Intro.vue -d 5 -o intro.mp4
+# Simple example (auto-detects duration)
+npx vueseq examples/HelloWorld.vue -o examples/hello.mp4
+
+# Multi-scene showcase
+npx vueseq examples/Showcase.vue -o examples/showcase.mp4
+
+# Override duration (partial render)
+npx vueseq examples/Showcase.vue -d 10 -o examples/partial.mp4
 
 # 4K at 60fps
-vueseq Intro.vue -d 10 -f 60 -w 3840 -H 2160 -o intro-4k.mp4
+npx vueseq examples/HelloWorld.vue -f 60 -w 3840 -H 2160 -o examples/hello-4k.mp4
 
 # Square for social media
-vueseq Story.vue -d 15 -w 1080 -H 1080 -o story.mp4
+npx vueseq examples/HelloWorld.vue -w 1080 -H 1080 -o examples/hello-square.mp4
 ```
 
 ## Programmatic API

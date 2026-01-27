@@ -35,7 +35,17 @@ window.__VUESEQ_SET_CONFIG__ = (config) => {
   window.__VUESEQ_CONFIG__ = config
 }
 
-// 6. Mark as ready after a microtask to ensure Vue is mounted
+// 6. Expose timeline duration for auto-detection
+window.__VUESEQ_GET_DURATION__ = () => {
+  const duration = gsap.globalTimeline.duration()
+  // Return null for infinite timelines (repeat: -1)
+  if (duration === Infinity || duration > 3600) {
+    return null
+  }
+  return duration
+}
+
+// 7. Mark as ready after a microtask to ensure Vue is mounted
 queueMicrotask(() => {
   window.__VUESEQ_READY__ = true
 })

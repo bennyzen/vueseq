@@ -26,15 +26,15 @@ USAGE:
 
 OPTIONS:
   -o, --output   Output file (default: ./output.mp4)
-  -d, --duration Duration in seconds (required)
+  -d, --duration Duration in seconds (auto-detected if not specified)
   -f, --fps      Frames per second (default: 30)
   -w, --width    Video width in pixels (default: 1920)
   -H, --height   Video height in pixels (default: 1080)
   --help         Show this help message
 
 EXAMPLE:
-  vueseq MyAnimation.vue -d 5 -o my-video.mp4
-  vueseq Intro.vue -d 10 -f 60 -w 3840 -H 2160 -o intro-4k.mp4
+  npx vueseq examples/HelloWorld.vue -o examples/hello.mp4
+  npx vueseq examples/Showcase.vue -w 1280 -H 720 -f 60 -o examples/showcase.mp4
 `)
 }
 
@@ -76,16 +76,18 @@ if (extname(inputPath) !== '.vue') {
     process.exit(1)
 }
 
-// Validate duration
-if (!values.duration) {
-    console.error('Error: Duration is required. Use -d or --duration to specify duration in seconds.')
-    process.exit(1)
-}
+// Parse duration if provided
+let duration = null
+let durationAuto = false
 
-const duration = parseFloat(values.duration)
-if (isNaN(duration) || duration <= 0) {
-    console.error('Error: Duration must be a positive number')
-    process.exit(1)
+if (values.duration) {
+    duration = parseFloat(values.duration)
+    if (isNaN(duration) || duration <= 0) {
+        console.error('Error: Duration must be a positive number')
+        process.exit(1)
+    }
+} else {
+    durationAuto = true
 }
 
 // Parse numeric options
@@ -104,13 +106,25 @@ if (isNaN(width) || width <= 0 || isNaN(height) || height <= 0) {
 }
 
 // Import renderer and start rendering
-console.log(`\nVueSeq - Rendering ${input}`)
-console.log(`  Duration: ${duration}s at ${fps}fps (${Math.ceil(duration * fps)} frames)`)
-console.log(`  Resolution: ${width}x${height}`)
-console.log(`  Output: ${values.output}\n`)
-
 try {
     const { renderToMp4 } = await import('../src/renderer/encode.js')
+    const { getTimelineDuration } = await import('../src/renderer/render.js')
+
+    // Auto-detect duration if not provided
+    if (durationAuto) {
+        console.log(`\nVueSeq - Detecting timeline duration...`)
+        duration = await getTimelineDuration({ input: inputPath, width, height })
+        if (!duration || duration <= 0) {
+            console.error('Error: Could not auto-detect duration. Use -d to specify manually.')
+            process.exit(1)
+        }
+        console.log(`  Auto-detected: ${duration.toFixed(2)}s`)
+    }
+
+    console.log(`\nVueSeq - Rendering ${input}`)
+    console.log(`  Duration: ${duration}s at ${fps}fps (${Math.ceil(duration * fps)} frames)${durationAuto ? ' (auto)' : ''}`)
+    console.log(`  Resolution: ${width}x${height}`)
+    console.log(`  Output: ${values.output}\n`)
 
     const startTime = Date.now()
     let lastLoggedPercent = -1
