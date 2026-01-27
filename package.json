@@ -1,6 +1,6 @@
 {
     "name": "vueseq",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "A minimal, deterministic video renderer for Vue 3 + GSAP",
     "type": "module",
     "bin": {
