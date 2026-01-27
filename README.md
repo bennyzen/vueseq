@@ -26,6 +26,32 @@ https://github.com/user-attachments/assets/84d01c02-4b4f-4d86-879e-720a7e367967
 
 *This video was rendered with VueSeq from [examples/HelloWorld.vue](./examples/HelloWorld.vue)*
 
+## What Can You Build?
+
+**Your app. As a video. Using your actual components.**
+
+Install VueSeq into your Vue project and create stunning videos that perfectly match your brand—because they *are* your brand. No recreating UIs in After Effects. No screen recording artifacts. Just your components, animated with GSAP, rendered to pixel-perfect video.
+
+### 🎬 App Showcases & Demos
+Create promotional videos using your real UI components. Product tours, feature walkthroughs, "What's New in v2.0" announcements—all with your exact design system, your exact colors, your exact components.
+
+### 📱 Social Media Content
+Generate short-form videos for Twitter, LinkedIn, Instagram. Show off a feature in 15 seconds. Your followers see your actual product, not a mockup.
+
+### 📚 Documentation & Tutorials  
+Animate how your features work. Show state transitions, user flows, component interactions. Embed videos in your docs that never go stale—regenerate them when your UI changes.
+
+### 📊 Data Visualizations
+Animated charts, dashboards, infographics. Watch your bar charts grow, your line graphs draw, your data come alive.
+
+### 🎨 Design System Demos
+Showcase your component library in motion. Let designers and developers *see* how components animate, transition, and interact.
+
+---
+
+**The idea is simple:** If you can build it in Vue, you can render it to video. One command. Deterministic output. Every time.
+
+
 ## Philosophy
 
 VueSeq is intentionally minimal. We bundle only the essentials: **Vue**, **GSAP**, **Playwright**, and **Vite**.
