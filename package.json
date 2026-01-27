@@ -1,0 +1,46 @@
+{
+  "name": "vueseq",
+  "version": "0.1.0",
+  "description": "A minimal, deterministic video renderer for Vue 3 + GSAP",
+  "type": "module",
+  "bin": {
+    "vueseq": "./bin/cli.js"
+  },
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "bin",
+    "src"
+  ],
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": [
+    "vue",
+    "gsap",
+    "video",
+    "animation",
+    "render",
+    "remotion",
+    "pellicule"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "gsap": "^3.12.0",
+    "playwright": "^1.40.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite": "^5.0.0",
+    "vue": "^3.4.0"
+  },
+  "peerDependencies": {
+    "vue": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
