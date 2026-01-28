@@ -24,7 +24,7 @@ https://github.com/user-attachments/assets/84d01c02-4b4f-4d86-879e-720a7e367967
 
 
 
-*This video was rendered with VueSeq from [examples/HelloWorld.vue](./examples/HelloWorld.vue)*
+*This video was rendered with VueSeq from [examples/Showcase.vue](./examples/Showcase.vue)*
 
 ## What Can You Build?
 
@@ -44,12 +44,52 @@ Animate how your features work. Show state transitions, user flows, component in
 ### 📊 Data Visualizations
 Animated charts, dashboards, infographics. Watch your bar charts grow, your line graphs draw, your data come alive.
 
+### 🎓 Educational Videos
+Create animated explainers, course content, and training materials. Complex concepts become clear with step-by-step animated infographics and interactive walkthroughs.
+
 ### 🎨 Design System Demos
 Showcase your component library in motion. Let designers and developers *see* how components animate, transition, and interact.
 
 ---
 
 **The idea is simple:** If you can build it in Vue, you can render it to video. One command. Deterministic output. Every time.
+
+
+## Integration Modes
+
+### 🔌 Add to Your Existing App
+Install VueSeq into your Vue project and create videos using your existing components and design system. Import your buttons, cards, charts—anything you've already built. Your videos will match your app perfectly because they *are* your app.
+
+```bash
+npm install vueseq
+# Create a video component that imports your existing components
+npx vueseq src/videos/ProductDemo.vue -o demo.mp4
+```
+
+### 🤖 Programmatic / AI-Generated Videos
+Use the API to generate videos programmatically. Perfect for:
+- **AI pipelines**: Generate videos from LLM-created storyboards
+- **Automated content**: Create personalized videos at scale
+- **CI/CD integration**: Regenerate demo videos on every release
+
+```javascript
+import { renderToMp4 } from 'vueseq'
+
+await renderToMp4({
+  input: '/path/to/GeneratedVideo.vue',
+  output: 'output.mp4'
+})
+```
+
+### 📦 Standalone Projects
+Create a dedicated video project from scratch. Ideal for marketing teams, content creators, or anyone who wants to produce videos without an existing Vue app.
+
+```bash
+mkdir my-video && cd my-video
+npm init -y && npm install vueseq
+# Create your video component and render
+npx vueseq Video.vue -o video.mp4
+```
 
 
 ## Philosophy
