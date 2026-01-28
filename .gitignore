@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Output files
+*.mp4
+output.mp4
+
+# Test files
+test-output.mp4
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temp files
+*.tmp
+.tmp/

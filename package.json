@@ -1,6 +1,6 @@
 {
     "name": "vueseq",
-    "version": "0.1.2",
+    "version": "0.2.0",
     "description": "A minimal, deterministic video renderer for Vue 3 + GSAP",
     "type": "module",
     "bin": {
@@ -38,7 +38,9 @@
     },
     "dependencies": {
         "gsap": "^3.12.0",
-        "playwright": "^1.40.0"
+        "html2canvas": "^1.4.1",
+        "mediabunny": "^1.31.0",
+        "playwright": "^1.58.0"
     },
     "devDependencies": {
         "@vitejs/plugin-vue": "^5.0.0",
