@@ -219,7 +219,7 @@ For complex animations or long videos, use parallel rendering to utilize all CPU
 ```bash
 npx vueseq examples/Showcase.vue --parallel
 ```
-*Automatically detects CPU cores and scales accordingly (e.g., 60s for a 20min render).*
+*Automatically detects CPU cores and scales accordingly.*
 
 That's it! Duration is auto-detected from your timeline. Your video will be rendered at 1920x1080, 30fps.
 
@@ -301,7 +301,7 @@ VueSeq uses GSAP's deterministic timeline control:
 2. **Playwright** opens it in headless Chrome
 3. For each frame, GSAP's `globalTimeline.seek(time)` jumps to the exact moment
 4. **Screenshot** captures the frame
-5. **WebCodecs API** (via Mediabunny) encodes frames to video with hardware acceleration
+5. **WebCodecs API** (via Mediabunny) encodes frames to video with hardware acceleration (if available)
 
 This is deterministic because `seek()` applies all GSAP values synchronously—given the same time, you get the exact same DOM state every time. The WebCodecs API provides hardware-accelerated H.264 encoding without requiring FFmpeg.
 
@@ -327,7 +327,7 @@ function createIntro() {
 }
 ```
 
-Stack scenes with `position: absolute` and control visibility via GSAP opacity animations. See `examples/HelloWorld.vue` for a complete 4-scene example, and `AGENTS.md` for detailed patterns.
+Stack scenes with `position: absolute` and control visibility via GSAP opacity animations. See `examples/Showcase.vue` for a complete 4-scene example, and `AGENTS.md` for detailed patterns.
 
 ## Tips
 
