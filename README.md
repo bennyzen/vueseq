@@ -28,7 +28,7 @@ _This video was rendered with VueSeq from [examples/Showcase.vue](./examples/Sho
 
 ## What Can You Build?
 
-**Your app. As a video. Using your actual components.**
+**Your app, as a video, using your actual components.**
 
 Install VueSeq into your Vue project and create stunning videos that perfectly match your brand—because they _are_ your brand. No recreating UIs in After Effects. No screen recording artifacts. Just your components, animated with GSAP, rendered to pixel-perfect video.
 
