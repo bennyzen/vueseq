@@ -89,9 +89,8 @@ import Video from '${input}'
 
 const app = createApp(Video)
 app.mount('#app')
-
-// Signal ready after Vue has mounted
-window.__VUESEQ_READY__ = true
+// Ready state is signalled by gsap-bridge.js via queueMicrotask
+// to ensure both Vue mount and GSAP timeline setup are complete
 `
             }
         }

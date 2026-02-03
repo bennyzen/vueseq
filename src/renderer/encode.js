@@ -7,73 +7,10 @@
 
 import { chromium } from 'playwright'
 import { createVideoServer } from '../bundler/vite.js'
-import { readFile, writeFile } from 'fs/promises'
+import { writeFile } from 'fs/promises'
 import { getTimelineDuration } from './render.js'
-import { join } from 'path'
 import { getOptimalChromiumConfig, checkGPUAcceleration } from './gpu.js'
-
-// GPU configuration is now handled by the gpu.js module
-// which auto-detects the best backend for the current system
-
-/**
- * Inject Mediabunny library into the page
- * @param {import('playwright').Page} page
- */
-async function injectMediabunny(page) {
-  const libPath = join(
-    process.cwd(),
-    'node_modules',
-    'mediabunny',
-    'dist',
-    'bundles',
-    'mediabunny.cjs',
-  )
-  const libCode = await readFile(libPath, 'utf-8')
-  await page.addScriptTag({ content: libCode })
-}
-
-/**
- * Initialize Mediabunny encoder in the browser context
- * @param {import('playwright').Page} page
- * @param {Object} config
- */
-async function initializeEncoder(page, { width, height, fps }) {
-  await page.evaluate(
-    async ({ width, height, fps }) => {
-      const {
-        Output,
-        Mp4OutputFormat,
-        BufferTarget,
-        QUALITY_HIGH,
-        CanvasSource,
-      } = window.Mediabunny
-
-      // Create output with MP4 format
-      window.__VUESEQ_OUTPUT__ = new Output({
-        format: new Mp4OutputFormat(),
-        target: new BufferTarget(),
-      })
-
-      // Store canvas for reuse
-      const canvas = document.createElement('canvas')
-      canvas.width = width
-      canvas.height = height
-      window.__VUESEQ_CANVAS__ = canvas
-
-      // Create CanvasSource with encoding config
-      window.__VUESEQ_VIDEO_SOURCE__ = new CanvasSource(canvas, {
-        codec: 'avc',
-        bitrate: QUALITY_HIGH,
-      })
-
-      window.__VUESEQ_OUTPUT__.addVideoTrack(window.__VUESEQ_VIDEO_SOURCE__)
-      window.__VUESEQ_FPS__ = fps
-
-      await window.__VUESEQ_OUTPUT__.start()
-    },
-    { width, height, fps },
-  )
-}
+import { injectMediabunny, initializeEncoder, finalizeEncoding } from './encoder-helpers.js'
 
 /**
  * Encode a single frame using Mediabunny
@@ -81,7 +18,7 @@ async function initializeEncoder(page, { width, height, fps }) {
  * @param {Buffer} imageBuffer - PNG image buffer from Playwright
  * @param {number} frameIndex - Current frame index
  */
-async function encodeFrame(page, imageBuffer, frameIndex) {
+async function encodeFrame(page, imageBuffer, frameIndex, fps) {
   // Convert buffer to base64 for transmission to browser
   const base64Data = imageBuffer.toString('base64')
   const dataUrl = `data:image/png;base64,${base64Data}`
@@ -107,40 +44,8 @@ async function encodeFrame(page, imageBuffer, frameIndex) {
       const frameDuration = 1 / fps
       await window.__VUESEQ_VIDEO_SOURCE__.add(timestamp, frameDuration)
     },
-    {
-      dataUrl,
-      frameIndex,
-      fps: await page.evaluate(() => window.__VUESEQ_FPS__),
-    },
+    { dataUrl, frameIndex, fps },
   )
-}
-
-/**
- * Finalize encoding and retrieve the MP4 buffer
- * @param {import('playwright').Page} page
- * @returns {Promise<number[]>} - Array of bytes
- */
-async function finalizeEncoding(page) {
-  console.log('  Transferring video data (Base64)...')
-  return await page.evaluate(async () => {
-    window.__VUESEQ_VIDEO_SOURCE__.close()
-    await window.__VUESEQ_OUTPUT__.finalize()
-    const buffer = window.__VUESEQ_OUTPUT__.target.buffer
-
-    // Cleanup
-    delete window.__VUESEQ_OUTPUT__
-    delete window.__VUESEQ_CANVAS__
-    delete window.__VUESEQ_VIDEO_SOURCE__
-    delete window.__VUESEQ_FPS__
-
-    // Fast conversion via Blob
-    const blob = new Blob([buffer], { type: 'video/mp4' })
-    return new Promise((resolve) => {
-      const reader = new FileReader()
-      reader.onloadend = () => resolve(reader.result)
-      reader.readAsDataURL(blob)
-    })
-  })
 }
 
 /**
@@ -238,7 +143,7 @@ export async function renderToMp4(options) {
       const screenshotBuffer = await page.screenshot({ type: 'png' })
 
       // Encode the frame
-      await encodeFrame(page, screenshotBuffer, frame)
+      await encodeFrame(page, screenshotBuffer, frame, fps)
 
       // Progress callback
       if (onProgress) {

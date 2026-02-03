@@ -169,9 +169,16 @@ export async function renderFrames(options) {
         })
       }
     }
-  } finally {
+  } catch (err) {
+    // On error, clean up everything (server + temp dir) since
+    // the caller won't receive the cleanup function
     await browser.close()
+    await cleanup()
+    throw err
   }
 
+  // On success, close the browser but let the caller clean up
+  // the Vite server and temp dir after consuming the frames
+  await browser.close()
   return { framesDir, totalFrames, cleanup }
 }

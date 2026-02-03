@@ -11,18 +11,16 @@
  * @returns {Promise<string>}
  */
 export async function getHtml2CanvasScript() {
-    const { readFile } = await import('fs/promises')
-    const { join, dirname } = await import('path')
-    const { fileURLToPath } = await import('url')
+  const { readFile } = await import('fs/promises')
+  const { join, dirname } = await import('path')
+  const { createRequire } = await import('module')
 
-    // Find html2canvas in node_modules
-    const __dirname = dirname(fileURLToPath(import.meta.url))
-    const html2canvasPath = join(
-        __dirname,
-        '../../node_modules/html2canvas/dist/html2canvas.min.js',
-    )
+  // Resolve html2canvas from this package's dependencies
+  const require = createRequire(import.meta.url)
+  const html2canvasPkg = require.resolve('html2canvas/package.json')
+  const html2canvasPath = join(dirname(html2canvasPkg), 'dist', 'html2canvas.min.js')
 
-    return await readFile(html2canvasPath, 'utf-8')
+  return await readFile(html2canvasPath, 'utf-8')
 }
 
 /**
@@ -33,40 +31,40 @@ export async function getHtml2CanvasScript() {
  * @param {number} options.height
  */
 export async function injectCaptureInfrastructure(page, { width, height }) {
-    // Inject html2canvas library
-    const html2canvasScript = await getHtml2CanvasScript()
-    await page.addScriptTag({ content: html2canvasScript })
+  // Inject html2canvas library
+  const html2canvasScript = await getHtml2CanvasScript()
+  await page.addScriptTag({ content: html2canvasScript })
 
-    // Set up capture canvas and utilities
-    await page.evaluate(
-        ({ width, height }) => {
-            // Create reusable capture canvas (avoid creating new ones each frame)
-            const captureCanvas = document.createElement('canvas')
-            captureCanvas.width = width
-            captureCanvas.height = height
-            window.__VUESEQ_CAPTURE_CANVAS__ = captureCanvas
+  // Set up capture canvas and utilities
+  await page.evaluate(
+    ({ width, height }) => {
+      // Create reusable capture canvas (avoid creating new ones each frame)
+      const captureCanvas = document.createElement('canvas')
+      captureCanvas.width = width
+      captureCanvas.height = height
+      window.__VUESEQ_CAPTURE_CANVAS__ = captureCanvas
 
-            // Pre-configure html2canvas options for speed
-            window.__VUESEQ_CAPTURE_OPTIONS__ = {
-                canvas: captureCanvas,
-                width,
-                height,
-                scale: 1,
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: null, // Transparent - use page background
-                logging: false,
-                // Performance optimizations
-                imageTimeout: 0,
-                removeContainer: true,
-                foreignObjectRendering: false, // More compatible
-            }
+      // Pre-configure html2canvas options for speed
+      window.__VUESEQ_CAPTURE_OPTIONS__ = {
+        canvas: captureCanvas,
+        width,
+        height,
+        scale: 1,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null, // Transparent - use page background
+        logging: false,
+        // Performance optimizations
+        imageTimeout: 0,
+        removeContainer: true,
+        foreignObjectRendering: false, // More compatible
+      }
 
-            // Frame batch storage for parallel processing
-            window.__VUESEQ_FRAME_BATCH__ = []
-        },
-        { width, height },
-    )
+      // Frame batch storage for parallel processing
+      window.__VUESEQ_FRAME_BATCH__ = []
+    },
+    { width, height },
+  )
 }
 
 /**
@@ -79,26 +77,26 @@ export async function injectCaptureInfrastructure(page, { width, height }) {
  * @returns {Promise<void>} - Frame is added to internal batch
  */
 export async function captureFrameToBatch(page, timestamp, fps) {
-    await page.evaluate(
-        async ({ timestamp, fps }) => {
-            const captureCanvas = window.__VUESEQ_CAPTURE_CANVAS__
-            const options = window.__VUESEQ_CAPTURE_OPTIONS__
+  await page.evaluate(
+    async ({ timestamp, fps }) => {
+      const captureCanvas = window.__VUESEQ_CAPTURE_CANVAS__
+      const options = window.__VUESEQ_CAPTURE_OPTIONS__
 
-            // Capture DOM to canvas using html2canvas
-            await html2canvas(document.body, options)
+      // Capture DOM to canvas using html2canvas
+      await html2canvas(document.body, options)
 
-            // Create VideoFrame directly from canvas (zero-copy on GPU!)
-            const frameDuration = 1 / fps
-            const videoFrame = new VideoFrame(captureCanvas, {
-                timestamp: Math.round(timestamp * 1_000_000), // microseconds
-                duration: Math.round(frameDuration * 1_000_000),
-            })
+      // Create VideoFrame directly from canvas (zero-copy on GPU!)
+      const frameDuration = 1 / fps
+      const videoFrame = new VideoFrame(captureCanvas, {
+        timestamp: Math.round(timestamp * 1_000_000), // microseconds
+        duration: Math.round(frameDuration * 1_000_000),
+      })
 
-            // Store in batch for later encoding
-            window.__VUESEQ_FRAME_BATCH__.push(videoFrame)
-        },
-        { timestamp, fps },
-    )
+      // Store in batch for later encoding
+      window.__VUESEQ_FRAME_BATCH__.push(videoFrame)
+    },
+    { timestamp, fps },
+  )
 }
 
 /**
@@ -106,29 +104,29 @@ export async function captureFrameToBatch(page, timestamp, fps) {
  * @param {import('playwright').Page} page
  */
 export async function encodeFrameBatch(page) {
-    await page.evaluate(async () => {
-        const batch = window.__VUESEQ_FRAME_BATCH__
-        const videoSource = window.__VUESEQ_VIDEO_SOURCE__
+  await page.evaluate(async () => {
+    const batch = window.__VUESEQ_FRAME_BATCH__
+    const videoSource = window.__VUESEQ_VIDEO_SOURCE__
 
-        // Encode each frame in the batch
-        for (const videoFrame of batch) {
-            // Add frame to video source at its timestamp
-            const timestampSec = videoFrame.timestamp / 1_000_000
-            const durationSec = videoFrame.duration / 1_000_000
-            await videoSource.add(timestampSec, durationSec)
+    // Encode each frame in the batch
+    const canvas = window.__VUESEQ_CANVAS__
+    const ctx = canvas.getContext('2d')
+    for (const videoFrame of batch) {
+      const timestampSec = videoFrame.timestamp / 1_000_000
+      const durationSec = videoFrame.duration / 1_000_000
 
-            // Draw the captured frame to the encoding canvas
-            const canvas = window.__VUESEQ_CANVAS__
-            const ctx = canvas.getContext('2d')
-            ctx.drawImage(videoFrame, 0, 0)
+      // Draw the captured frame to the encoding canvas BEFORE
+      // adding to video source, since add() reads current canvas content
+      ctx.drawImage(videoFrame, 0, 0)
+      await videoSource.add(timestampSec, durationSec)
 
-            // Close the VideoFrame to release GPU resources
-            videoFrame.close()
-        }
+      // Close the VideoFrame to release GPU resources
+      videoFrame.close()
+    }
 
-        // Clear batch for next round
-        window.__VUESEQ_FRAME_BATCH__ = []
-    })
+    // Clear batch for next round
+    window.__VUESEQ_FRAME_BATCH__ = []
+  })
 }
 
 /**
@@ -140,25 +138,25 @@ export async function encodeFrameBatch(page) {
  * @param {number} fps - Frames per second
  */
 export async function captureAndEncodeDirect(page, timestamp, fps) {
-    await page.evaluate(
-        async ({ timestamp, fps }) => {
-            const captureCanvas = window.__VUESEQ_CAPTURE_CANVAS__
-            const options = window.__VUESEQ_CAPTURE_OPTIONS__
-            const encodingCanvas = window.__VUESEQ_CANVAS__
-            const ctx = encodingCanvas.getContext('2d')
+  await page.evaluate(
+    async ({ timestamp, fps }) => {
+      const captureCanvas = window.__VUESEQ_CAPTURE_CANVAS__
+      const options = window.__VUESEQ_CAPTURE_OPTIONS__
+      const encodingCanvas = window.__VUESEQ_CANVAS__
+      const ctx = encodingCanvas.getContext('2d')
 
-            // Capture DOM to canvas
-            await html2canvas(document.body, options)
+      // Capture DOM to canvas
+      await html2canvas(document.body, options)
 
-            // Draw captured content to encoding canvas
-            ctx.drawImage(captureCanvas, 0, 0)
+      // Draw captured content to encoding canvas
+      ctx.drawImage(captureCanvas, 0, 0)
 
-            // Add frame to video source
-            const frameDuration = 1 / fps
-            await window.__VUESEQ_VIDEO_SOURCE__.add(timestamp, frameDuration)
-        },
-        { timestamp, fps },
-    )
+      // Add frame to video source
+      const frameDuration = 1 / fps
+      await window.__VUESEQ_VIDEO_SOURCE__.add(timestamp, frameDuration)
+    },
+    { timestamp, fps },
+  )
 }
 
 /**
@@ -166,20 +164,20 @@ export async function captureAndEncodeDirect(page, timestamp, fps) {
  * @param {import('playwright').Page} page
  */
 export async function cleanupCapture(page) {
-    await page.evaluate(() => {
-        // Close any remaining frames in batch
-        if (window.__VUESEQ_FRAME_BATCH__) {
-            for (const frame of window.__VUESEQ_FRAME_BATCH__) {
-                try {
-                    frame.close()
-                } catch {
-                    // Already closed
-                }
-            }
+  await page.evaluate(() => {
+    // Close any remaining frames in batch
+    if (window.__VUESEQ_FRAME_BATCH__) {
+      for (const frame of window.__VUESEQ_FRAME_BATCH__) {
+        try {
+          frame.close()
+        } catch {
+          // Already closed
         }
+      }
+    }
 
-        delete window.__VUESEQ_CAPTURE_CANVAS__
-        delete window.__VUESEQ_CAPTURE_OPTIONS__
-        delete window.__VUESEQ_FRAME_BATCH__
-    })
+    delete window.__VUESEQ_CAPTURE_CANVAS__
+    delete window.__VUESEQ_CAPTURE_OPTIONS__
+    delete window.__VUESEQ_FRAME_BATCH__
+  })
 }
